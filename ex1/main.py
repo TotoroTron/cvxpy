@@ -1,5 +1,5 @@
 import cvxpy as cp
-import numpy
+import numpy as np
 
 
 def main():
@@ -7,23 +7,34 @@ def main():
     # Problem data.
     m = 30
     n = 20
-    numpy.random.seed(1)
-    A = numpy.random.randn(m, n)
-    b = numpy.random.randn(m)
+    np.random.seed(1)
+    A = np.random.randn(m, n)
+    b = np.random.randn(m)
 
     # Construct the problem.
-    x = cp.Variable(n)
-    objective = cp.Minimize(cp.sum_squares(A @ x - b))
-    constraints = [0 <= x, x <= 1]
+    x1 = cp.Variable(n)
+    objective = cp.Minimize(cp.sum_squares(A @ x1 - b))
+    constraints = [0 <= x1, x1 <= 1]
     prob = cp.Problem(objective, constraints)
+    prob.solve()
 
-    # The optimal objective is returned by prob.solve().
-    result = prob.solve()
-    # The optimal value for x is stored in x.value.
-    print(x.value)
-    # The optimal Lagrange multiplier for a constraint
-    # is stored in constraint.dual_value.
-    print(constraints[0].dual_value)
+    print("\nP-STAR: ", prob.value)
+    print("\nX-STAR: ", x1.value)
+    print("\nRESIDUAL NORM: ", cp.norm(A @ x1 - b, p=2).value)
+
+    print("\nUsing alternate expression for matrix-vector multiplication: \n")
+
+    x2 = cp.Variable(n)
+    objective = cp.Minimize(cp.sum_squares(np.matmul(A, x2) - b))
+    # A = (30, 20), x2 = (20)
+    # A @ x2 = (30, 1)
+    constraints = [0 <= x2, x2 <= 1]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+
+    print("\nP-STAR: ", prob.value)
+    print("\nX-STAR: ", x2.value)
+    print("\nRESIDUAL NORM: ", cp.norm(np.matmul(A, x2) - b, p=2).value)
 
 if __name__ == "__main__":
     main()

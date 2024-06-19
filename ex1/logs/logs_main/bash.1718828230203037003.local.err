@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex1/main.py", line 40, in <module>
+    main()
+  File "/home/bcheng/workspace/dev/cvxpy/ex1/main.py", line 28, in main
+    objective = cp.Minimize(cp.sum_squares(np.dot(A, x2) - b))
+                                           ~~~~~~~~~~~~~~^~~
+ValueError: operands could not be broadcast together with shapes (30,20) (30,) 

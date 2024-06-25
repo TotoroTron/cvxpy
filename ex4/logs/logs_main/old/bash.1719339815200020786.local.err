@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 48, in <module>
+    main()
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 38, in main
+    xbar = sum(xi)/len(xi)
+           ~~~~~~~^~~~~~~~
+ZeroDivisionError: division by zero

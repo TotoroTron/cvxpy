@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 50, in <module>
+    main()
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 38, in main
+    xi = pool.map(prox(rho, zip(funcs, prox_args)), zip(funcs, prox_args))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 9, in prox
+    rho, f, v = args
+    ^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)

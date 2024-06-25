@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 50, in <module>
+    main()
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 38, in main
+    xi = pool.map(prox(x, rho, zip(funcs, prox_args)), zip(funcs, prox_args))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 10, in prox
+    f += (rho/2)*sum_squares(x - v)
+                             ~~^~~
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 49, in cast_op
+    other = self.cast_to_const(other)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 564, in cast_to_const
+    return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/constants/constant.py", line 55, in __init__
+    self._value = intf.DEFAULT_INTF.const_to_matrix(value)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/interface/numpy_interface/ndarray_interface.py", line 52, in const_to_matrix
+    result = numpy.asarray(value)
+             ^^^^^^^^^^^^^^^^^^^^
+ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1 dimensions. The detected shape was (2,) + inhomogeneous part.

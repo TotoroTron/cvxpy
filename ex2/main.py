@@ -65,6 +65,9 @@ def main():
         train_errors.append(mse(X_train, Y_train, beta))
         test_errors.append(mse(X_test, Y_test, beta))
         beta_values.append(beta.value)
+    
+    print("\nP-STAR: ", problem.value)
+    print("\nX-STAR: ", beta.value)
 
     plot_train_test_errors(train_errors, test_errors, lambd_values)
 

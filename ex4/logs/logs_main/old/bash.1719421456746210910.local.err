@@ -1,0 +1,49 @@
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/multiprocessing/pool.py", line 48, in mapstar
+    return list(map(*args))
+           ^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 19, in prox
+    f += (rho/2)*sum_squares(x - v)
+                             ~~^~~
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 50, in cast_op
+    return binary_op(self, other)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 613, in __sub__
+    return self + -other
+           ~~~~~^~~~~~~~
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 50, in cast_op
+    return binary_op(self, other)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/expression.py", line 599, in __add__
+    return cvxtypes.add_expr()([self, other])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/atoms/affine/add_expr.py", line 33, in __init__
+    super(AddExpression, self).__init__(*arg_groups)
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/atoms/atom.py", line 51, in __init__
+    self._shape = self.shape_from_args()
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/atoms/affine/add_expr.py", line 41, in shape_from_args
+    return u.shape.sum_shapes([arg.shape for arg in self.args])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/utilities/shape.py", line 50, in sum_shapes
+    raise ValueError(
+ValueError: Cannot broadcast dimensions  (75,) (75, 1)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 33, in <module>
+    xi = pool.map(prox, zip(funcs, prox_args))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/multiprocessing/pool.py", line 367, in map
+    return self._map_async(func, iterable, mapstar, chunksize).get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/multiprocessing/pool.py", line 774, in get
+    raise self._value
+ValueError: Cannot broadcast dimensions  (75,) (75, 1)

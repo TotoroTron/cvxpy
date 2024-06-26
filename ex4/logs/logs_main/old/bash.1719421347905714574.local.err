@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 25, in <module>
-    x = Variable(n, 1)
-        ^^^^^^^^^^^^^^
-  File "/home/bcheng/workspace/tools/anaconda3/envs/cvxpy/lib/python3.12/site-packages/cvxpy/expressions/variable.py", line 82, in __init__
-    raise TypeError("Variable name %s must be a string." % name)
-TypeError: Variable name 1 must be a string.

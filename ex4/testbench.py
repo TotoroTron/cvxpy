@@ -4,11 +4,11 @@ import pandas as pd
 import time
 
 class Testbench():
-    def __init__(self, self, params, methods, validation_method):
+    def __init__(self, params, methods, validation_method):
         self._methods = [ validation_method ]
         self._methods.extend(methods)
         self._params = params
-        self._dataframe = pd.DataFrame()
+        self._df = pd.DataFrame()
 
     def _verify(self, result, expected):
         return int(not(np.allclose(result, expected, rtol=1e-05, atol=1e-08)))
@@ -17,6 +17,10 @@ class Testbench():
         return self._dataframe.copy()
 
     def test_all(self):
+        
+        # report = [entry, entry, ..., entry]
+        # entry = [M, N, K, S, fail1, time1, fail2, time2, etc ...]
+        report = []
         
         for param in self._params: 
             """
@@ -34,10 +38,10 @@ class Testbench():
             b = ... # Response vector
 
             # Validation Run
-            expectation = None
+            expectation = ... 
 
             # Dataframe entries:
-            # entry = M, N, K, S, mthd1_fail, mthd1_time, mthd2_fail, mthd2_time, ... 
+            # entry = M, N, K, S, fail1, time1, fail2, time2, etc ...] 
             entry = [M, N, K, S]
 
             for idx, method in enumerate(self._methods):
@@ -53,9 +57,11 @@ class Testbench():
                 entry.extend( self._verify( result, expectation ) )
                 entry.extend( elapsed_time )
 
-            self._dataframe.loc[len(self._dataframe)] = entry 
-
+            report.append(entry)
             ...
+
+        self._df = pd.concat([self._df, report)
+
         ...
 
 

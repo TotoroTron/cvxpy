@@ -6,8 +6,8 @@ from cvxpy import Minimize, Problem, Variable, norm, sum_squares
 
 # Problem data.
 m = 100
-n = 75
-np.random.seed(1)
+n = 100
+np.random.seed(2)
 A = np.random.randn(m, n)
 b = np.random.randn(m, 1)
 gamma = 0.1
@@ -29,7 +29,7 @@ ui = [np.zeros((n, 1)) for func in funcs]
 xbar = np.zeros((n, 1))
 pool = Pool(NUM_PROCS)
 # ADMM loop.
-for i in range(50):
+for i in range(1000):
     prox_args = [xbar - u for u in ui]
     xi = pool.map(prox, zip(funcs, prox_args))
     xbar = sum(xi)/len(xi)

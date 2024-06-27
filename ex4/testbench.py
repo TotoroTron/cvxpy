@@ -54,8 +54,8 @@ class Testbench():
                 if idx == 0: # First method as validation run
                     expectation = instance.get_result()
 
-                entry.extend( self._verify( result, expectation ) )
-                entry.extend( elapsed_time )
+                entry.append( self._verify( result, expectation ) )
+                entry.append( elapsed_time )
 
             report.append(entry)
             ...
@@ -63,9 +63,6 @@ class Testbench():
         self._df = pd.concat([self._df, report)
 
         ...
-
-
-
 
 
 

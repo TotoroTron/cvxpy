@@ -78,5 +78,14 @@ class CVXPY_ADMM(LASSO):
             prox_args = [ xbar - u for u in ui ]
             xi = pool.map(prox, zip(funcs, prox_args))
             xbar = sum(xi)/len(xi)
-            ui = [ u + xavg - xbar
+            ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
+
+        self._xstar = cvx.sum_squres(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
+
+
+
+
+
+
+
 

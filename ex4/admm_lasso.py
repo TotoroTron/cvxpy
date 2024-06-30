@@ -1,6 +1,5 @@
 import cvxpy as cvx
 import numpy as np
-import pandas as pd
 import abc as ABC
 
 class LASSO(ABC): 
@@ -28,32 +27,49 @@ class LASSO(ABC):
         assert isinstance(gamma, float), "gamma must be a float!"
 
         self._inputs = inputs
+
+        self._xstar = None
         self._xstop = None
-        self._xstar = None
         self._xfinal = None
+        self._pstar = None
         self._pstop = None
-        self._xstar = None
-        self._xfinal = None
+        self._pfinal = None
     
     @abstractmethod
     def solve(self):
         # Perform some calculation using A x and b and alter x.
         ...
 
-    def get_stopping_point(self):
-        # Returns (p, x) where stopping criterion is met
-        return self._pstop, self._xstop,
-
     def get_star_point(self): 
         # Returns (p, x) at the smallest observed p 
         return self._pstar, self._xstar
+
+    def get_stopping_point(self):
+        # Returns (p, x) where stopping criterion is met
+        return self._pstop, self._xstop,
 
     def get_final_point(self):
         # Returns (p, x) at the final iteration of algorithm
         return self._pfinal, self._xfinal
     
-    
-class CVXPY_ADMM(LASSO):
+
+class CVXPY_SOLVE(LASSO):
+    def solve(self):
+        A, x, b, rho, gamma = self._inputs
+        fis = [ cvx.sum_squares(A @ x - b), gamma * cvx.norm(x, 1) ]
+        objective = cvx.Minimize(sum(fis))
+        problem = cvx.Problem(objective)
+        self._pstar = problem.solve()
+        self._xstar = x.value
+
+
+
+
+
+
+"""
+
+class ADMM_POOL(LASSO):
     def __init__(self, inputs):
         super()__init__(inputs)
         from multiprocessing import Pool
@@ -82,6 +98,7 @@ class CVXPY_ADMM(LASSO):
 
         self._xstar = cvx.sum_squres(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
 
+"""
 
 
 

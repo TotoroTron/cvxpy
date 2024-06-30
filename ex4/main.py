@@ -7,5 +7,8 @@ def main():
     validation_method = [ al.CVXPY_SOLVE ]
     testbench = tb.Testbench(params, methods, validation_method)
 
+    
+
+
 if __name__ == "__main__":
     main()

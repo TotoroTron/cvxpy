@@ -1,17 +1,18 @@
 import cvxpy as cvx
 import numpy as np
-import abc as ABC
+from abc import ABC, abstractmethod
 
 class LASSO(ABC): 
-    def __init__(self inputs):
+    def __init__(self, inputs):
         A, x, b, rho, gamma = inputs
+        print(inputs)
 
         # Assert A is a 2D numpy array
         assert isinstance(A, np.ndarray), "A must be a numpy array!"
         assert A.ndim == 2, "A must be a 2D numpy array!"
 
         # Assert x is a 2D numpy array with shape (n, 1)
-        assert isinstance(x, np.ndarray), "x must be a numpy array!"
+        assert isinstance(x, cvx.Variable), "x must be a cvxpy Variable!"
         assert x.ndim == 2, "x must be a 2D numpy array!"
         assert x.shape[1] == 1, "x must be a column vector (n, 1)!"
 
@@ -37,14 +38,13 @@ class LASSO(ABC):
     
     @abstractmethod
     def solve(self):
-        # Perform some calculation using A x and b and alter x.
-        ...
+        pass
 
     def get_star_point(self): 
         # Returns (p, x) at the smallest observed p 
         return self._pstar, self._xstar
 
-    def get_stopping_point(self):
+    def get_stop_point(self):
         # Returns (p, x) where stopping criterion is met
         return self._pstop, self._xstop,
 
@@ -63,15 +63,9 @@ class CVXPY_SOLVE(LASSO):
         self._xstar = x.value
 
 
-
-
-
-
-"""
-
 class ADMM_POOL(LASSO):
     def __init__(self, inputs):
-        super()__init__(inputs)
+        super().__init__(inputs)
         from multiprocessing import Pool
         NUM_PROCS = 4 
 
@@ -96,9 +90,8 @@ class ADMM_POOL(LASSO):
             xbar = sum(xi)/len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
 
-        self._xstar = cvx.sum_squres(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
+        self._xstar = (cvx.sum_squres(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
 
-"""
 
 
 

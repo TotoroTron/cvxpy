@@ -1,6 +1,7 @@
 import numpy as np
-import admm_lasso as al
+import lasso as ls 
 import pandas as pd
+import cvxpy as cvx
 import time
 
 class Testbench():
@@ -10,11 +11,11 @@ class Testbench():
         self._params = params
         self._df = pd.DataFrame()
 
-    def _verify(self, result, expected):
-        return int(not(np.allclose(result, expected, rtol=1e-05, atol=1e-08)))
+    def _verify(self, result, expectation):
+        ...
 
     def get_dataframe(self):
-        return self._dataframe.copy()
+        return self._df.copy()
 
     def test_all(self):
         
@@ -33,39 +34,43 @@ class Testbench():
                 S: sparsity
             Use Scipy to generate matrices with special spectral properties
             """
-            M, N, K, S = params
-            A = np.randn(randn(M, N)) # Input data matrix 
-            x = np.randn(randn(N)) # Coefficient vector
-            b = np.randn(rand(M)) # Response vector
+            M, N, K, S, rho, gamma = param
+            A = np.random.randn(M, N) # Input data matrix 
+            x = cvx.Variable((N, 1)) # Coefficient vector
+            b = np.random.rand(M, 1) # Response vector
 
             # Validation Run
-            expected_pstar = None 
-            expected_pstop = None
-            expected_pfinal = None
+            exp_pstar = None 
+            exp_pstop = None
+            exp_pfinal = None
 
-            expected_xstar = None
-            expected_xstop = None
-            expected_xfinal = None
+            exp_xstar = None
+            exp_xstop = None
+            exp_xfinal = None
 
             # Dataframe entries:
             # entry = M, N, K, S, fail1, time1, fail2, time2, etc ...] 
-            entry = [M, N, K, S]
+            # entry = [M, N, K, S, rho, gamma]
+            entry = list(param) 
 
             # BEGIN FOR_METHODS
             for idx, method in enumerate(self._methods):
-                instance = method(A, x.copy(), b)
+                inputs = (A, x.copy(), b, rho, gamma)
+                instance = method(inputs)
                 start_time = time.time()
-                instance.run()
+                instance.solve()
                 elapsed_time = time.time() - start_time
 
                 star_point = instance.get_star_point()
-                stopping_point =  instance.get_stopping_point()
+                stop_point =  instance.get_stop_point()
                 final_point = instance.get_final_point()
+                result = (star_point, stop_point, final_point)
 
                 if idx == 0: # First method as validation run
-                    expected_star_point = instance.get_star_point()
-                    expected_stopping_point = instance.get_stopping_point()
-                    expected_final_point = instance.get_final_point()
+                    exp_star_point = instance.get_star_point()
+                    exp_stop_point = instance.get_stop_point()
+                    exp_final_point = instance.get_final_point()
+                    expectation = (exp_star_point, exp_stop_point, exp_final_point)
 
                 entry.append( self._verify( result, expectation ) )
                 entry.append( elapsed_time )
@@ -73,8 +78,8 @@ class Testbench():
 
             report.append(entry)
         # END ITERATE PARAMS
-
-        self._df = pd.concat([ self._df, report ])
+        print(report) 
+        self._df = pd.concat([ self._df, pd.DataFrame(report) ])
     # END TEST_ALL
         
         

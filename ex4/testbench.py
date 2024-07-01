@@ -12,7 +12,17 @@ class Testbench():
         self._df = pd.DataFrame()
 
     def _verify(self, result, expectation):
-        ...
+        # result = ( (pstar, xstar), (pstop, xstop), (pfinal, xfinal))
+        # expectation = ...
+        # just check if the pstars and xstars are close
+        failure = int( 0) # failure = 0 means it passed
+        failure += int( 1) * int(not(np.allclose( result[0][0], expectation[0][0] )))
+        failure += int( 2) * int(not(np.allclose( result[0][1], expectation[0][1] )))
+        # failure += int( 4) * int(not(np.allclose( result[1][0], expectation[1][0] )))
+        # failure += int( 8) * int(not(np.allclose( result[1][1], expectation[1][1] )))
+        # failure += int(16) * int(not(np.allclose( result[2][0], expectation[2][0] )))
+        # failure += int(32) * int(not(np.allclose( result[2][1], expectation[2][1] )))
+        return failure
 
     def get_dataframe(self):
         return self._df.copy()
@@ -20,7 +30,6 @@ class Testbench():
     def test_all(self):
         
         # report = [entry, entry, ..., entry]
-        # entry = [M, N, K, S, fail1, time1, fail2, time2, etc ...]
         report = []
        
         # BEGIN FOR_PARAMS
@@ -49,8 +58,6 @@ class Testbench():
             exp_xfinal = None
 
             # Dataframe entries:
-            # entry = M, N, K, S, fail1, time1, fail2, time2, etc ...] 
-            # entry = [M, N, K, S, rho, gamma]
             entry = list(param) 
 
             # BEGIN FOR_METHODS
@@ -65,6 +72,7 @@ class Testbench():
                 stop_point =  instance.get_stop_point()
                 final_point = instance.get_final_point()
                 result = (star_point, stop_point, final_point)
+                #_point = ( p=f(x), x )
 
                 if idx == 0: # First method as validation run
                     exp_star_point = instance.get_star_point()
@@ -74,16 +82,27 @@ class Testbench():
 
                 entry.append( self._verify( result, expectation ) )
                 entry.append( elapsed_time )
+                entry.append( star_point[0] )
+                entry.append( stop_point[0] )
+                entry.append( final_point[0] )
             # END FOR_METHODS
 
             report.append(entry)
         # END ITERATE PARAMS
-        print(report) 
-        self._df = pd.concat([ self._df, pd.DataFrame(report) ])
+        
+        column_names = [ "M", "N", "K", "S", "rho", "gamma" ]
+        for method in self._methods:
+            method_name = method.__name__
+            column_names.append(f"{method_name}_fail")
+            column_names.append(f"{method_name}_time")
+            column_names.append(f"{method_name}_pstar")
+            column_names.append(f"{method_name}_pstop")
+            column_names.append(f"{method_name}_pfinal")
+        self._df = pd.concat( [self._df, pd.DataFrame(report)] )
+        self._df.columns = column_names
     # END TEST_ALL
         
         
-
 
 
 

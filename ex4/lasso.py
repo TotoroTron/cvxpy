@@ -1,11 +1,11 @@
 import cvxpy as cvx
 import numpy as np
+from multiprocessing import Pool
 from abc import ABC, abstractmethod
 
 class LASSO(ABC): 
     def __init__(self, inputs):
         A, x, b, rho, gamma = inputs
-        print(inputs)
 
         # Assert A is a 2D numpy array
         assert isinstance(A, np.ndarray), "A must be a numpy array!"
@@ -67,26 +67,25 @@ class ADMM_POOL(LASSO):
     def __init__(self, inputs):
         super().__init__(inputs)
         from multiprocessing import Pool
-        NUM_PROCS = 4 
+        self._NUM_PROCS = 4 
 
-    def prox(args):
-        f, v = args
-        # x = Variable((n,1))
-        f += (rho/2) * sum_squares(x - v)
+    def _prox(self, args):
+        f, v, rho = args
+        f += (rho/2) * cvx.sum_squares(self._x - v)
         Problem(Minimize(f)).solve()
         return x.value
 
     def solve(self):
         A, x, b, rho, gamma = self._inputs
         funcs = [ cvx.sum_squares(A @ x - b), gamma * cvx.norm(x, 1) ]
-        ui = [ np.zeros((n, 1)) for func in funcs ]
-        xbar = np.zeros((n, 1))
-        pool = Pool(NUM_PROCS)
+        ui = [ np.zeros((A.shape[1], 1)) for func in funcs ]
+        xbar = np.zeros((A.shape[1], 1))
+        pool = Pool(self._NUM_PROCS)
 
         # ADMM loop.
         for i in range(50):
             prox_args = [ xbar - u for u in ui ]
-            xi = pool.map(prox, zip(funcs, prox_args))
+            xi = pool.map(self._prox, zip(funcs, prox_args, [rho for func in funcs]))
             xbar = sum(xi)/len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
 

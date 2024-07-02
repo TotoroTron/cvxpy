@@ -25,7 +25,7 @@ def prox(args):
 # Setup problem.
 rho = 1.0
 x = Variable(n)
-funcs = [sum_squares(np.matmul(A, x) - b), gamma * norm(x, 1)]
+funcs = [sum_squares(A @ x - b), gamma * norm(x, 1)]
 ui = [np.zeros(n) for func in funcs]
 xbar = np.zeros(n)
 pool = Pool(NUM_PROCS)

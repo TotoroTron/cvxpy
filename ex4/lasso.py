@@ -5,29 +5,28 @@ from abc import ABC, abstractmethod
 
 class LASSO(ABC): 
     def __init__(self, inputs):
-        A, x, b, rho, gamma = inputs
+        self._inputs = inputs
+        self._A, self._x, self._b, self._rho, self._gamma = inputs
 
         # Assert A is a 2D numpy array
-        assert isinstance(A, np.ndarray), "A must be a numpy array!"
-        assert A.ndim == 2, "A must be a 2D numpy array!"
+        assert isinstance(self._A, np.ndarray), "A must be a numpy array!"
+        assert self._A.ndim == 2, "A must be a 2D numpy array!"
 
         # Assert x is a 2D numpy array with shape (n, 1)
-        assert isinstance(x, cvx.Variable), "x must be a cvxpy Variable!"
-        assert x.ndim == 2, "x must be a 2D numpy array!"
-        assert x.shape[1] == 1, "x must be a column vector (n, 1)!"
+        assert isinstance(self._x, cvx.Variable), "x must be a cvxpy Variable!"
+        assert self._x.ndim == 2, "x must be a 2D numpy array!"
+        assert self._x.shape[1] == 1, "x must be a column vector (n, 1)!"
 
         # Assert b is a 2D numpy array with shape (m, 1)
-        assert isinstance(b, np.ndarray), "b must be a numpy array!"
-        assert b.ndim == 2, "b must be a 2D numpy array!"
-        assert b.shape[1] == 1, "b must be a column vector (m, 1)!"
+        assert isinstance(self._b, np.ndarray), "b must be a numpy array!"
+        assert self._b.ndim == 2, "b must be a 2D numpy array!"
+        assert self._b.shape[1] == 1, "b must be a column vector (m, 1)!"
 
         # Assert rho is a float
-        assert isinstance(rho, float), "rho must be a float!"
+        assert isinstance(self._rho, float), "rho must be a float!"
 
         # Assert gamma is a float
-        assert isinstance(gamma, float), "gamma must be a float!"
-
-        self._inputs = inputs
+        assert isinstance(self._gamma, float), "gamma must be a float!"
 
         self._xstar = None
         self._xstop = None
@@ -63,7 +62,7 @@ class CVXPY_SOLVE(LASSO):
         self._xstar = x.value
 
 
-class ADMM_POOL(LASSO):
+class CVXPY_ADMM_POOL(LASSO):
     def __init__(self, inputs):
         super().__init__(inputs)
         from multiprocessing import Pool
@@ -72,8 +71,8 @@ class ADMM_POOL(LASSO):
     def _prox(self, args):
         f, v, rho = args
         f += (rho/2) * cvx.sum_squares(self._x - v)
-        Problem(Minimize(f)).solve()
-        return x.value
+        cvx.Problem(cvx.Minimize(f)).solve()
+        return self._x.value
 
     def solve(self):
         A, x, b, rho, gamma = self._inputs
@@ -85,11 +84,29 @@ class ADMM_POOL(LASSO):
         # ADMM loop.
         for i in range(50):
             prox_args = [ xbar - u for u in ui ]
+
             xi = pool.map(self._prox, zip(funcs, prox_args, [rho for func in funcs]))
             xbar = sum(xi)/len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
 
-        self._xstar = (cvx.sum_squres(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
+        self._xstar = (cvx.sum_squares(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
+
+
+class ADMM_MPI(LASSO):
+    def __init__(self, inputs):
+        super().__init__(inputs)
+        import mpi4py.MPI as mpi
+        self._comm = MPI.COMM_WORLD
+        self._rank = comm.Get_rank() # Rank of the process
+        self._size = comm.Get_size() # Number of processes
+
+    def admm(self):
+        pass
+
+    def solve(self):
+        pass
+        
+
 
 
 

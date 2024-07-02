@@ -27,18 +27,26 @@ ui = [np.zeros((n, 1)) for _ in funcs]
 xbar = np.zeros((n, 1))
 pool = Pool(NUM_PROCS)
 
+list_loss = []
+
 # ADMM loop.
 for i in range(50):
     prox_args = [xbar - u for u in ui]
     xi = pool.map(prox, [(func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args)])
     xbar = sum(xi) / len(xi)
     ui = [u + x_ - xbar for x_, u in zip(xi, ui)]
-    print(f"Iteration {i + 1} complete")
+    list_loss.append( (sum_squares(A @ xbar - b) + gamma * norm(xbar, 1)).value )
+
 
 # Compare ADMM with standard solver.
 prob = Problem(Minimize(sum(funcs)))
 result = prob.solve()
-print("ADMM best", (sum_squares(A @ xbar - b) + gamma * norm(xbar, 1)).value)
+
+for idx, loss in enumerate(list_loss):
+    print(f"idx: {idx}, loss: {loss}")
+
+
+print("ADMM best", list_loss[-1])
 print("ECOS best", result)
 
 pool.close()

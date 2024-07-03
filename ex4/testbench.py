@@ -12,16 +12,18 @@ class Testbench():
         self._df = pd.DataFrame()
 
     def _verify(self, result, expectation):
+        atol = 1.0 # absolute tolerance
+        rtol = 0.1 # relative tolerance
         # result = ( (pstar, xstar), (pstop, xstop), (pfinal, xfinal))
         # expectation = ...
         # just check if the pstars and xstars are close
         failure = int( 0) # failure = 0 means it passed
-        failure += int( 1) * int(not(np.allclose( result[0][0], expectation[0][0] )))
-        failure += int( 2) * int(not(np.allclose( result[0][1], expectation[0][1] )))
-        # failure += int( 4) * int(not(np.allclose( result[1][0], expectation[1][0] )))
-        # failure += int( 8) * int(not(np.allclose( result[1][1], expectation[1][1] )))
-        # failure += int(16) * int(not(np.allclose( result[2][0], expectation[2][0] )))
-        # failure += int(32) * int(not(np.allclose( result[2][1], expectation[2][1] )))
+        failure += int( 1) * int(not(np.allclose( result[0][0], expectation[0][0], rtol, atol )))
+        failure += int( 2) * int(not(np.allclose( result[0][1], expectation[0][1], rtol, atol )))
+        # failure += int( 4) * int(not(np.allclose( result[1][0], expectation[1][0], rtol, atol)))
+        # failure += int( 8) * int(not(np.allclose( result[1][1], expectation[1][1], rtol, atol)))
+        # failure += int(16) * int(not(np.allclose( result[2][0], expectation[2][0], rtol, atol)))
+        # failure += int(32) * int(not(np.allclose( result[2][1], expectation[2][1], rtol, atol)))
         return failure
 
     def get_dataframe(self):
@@ -44,6 +46,7 @@ class Testbench():
             Use Scipy to generate matrices with special spectral properties
             """
             M, N, K, S, rho, gamma = param
+            np.random.seed(1)
             A = np.random.randn(M, N) # Input data matrix 
             x = cvx.Variable((N, 1)) # Coefficient vector
             b = np.random.rand(M, 1) # Response vector

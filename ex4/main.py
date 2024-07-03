@@ -2,7 +2,12 @@ import lasso as ls
 import testbench as tb
 
 def main():
-    params = [ (80, 60, 1.0, 1.0, 1.0, 1.0), (40, 50, 1.0, 1.0, 1.0, 1.0)]
+    K = 1.0
+    S = 1.0
+    rho = 1.0
+    gamma = 1.0
+
+    params = [ (80, 60, K, S, rho, gamma), (250, 100, K, S, rho, gamma) ]
     methods = [ ls.CVXPY_ADMM_POOL ]
     validation_method = ls.CVXPY_SOLVE 
     testbench = tb.Testbench(params, methods, validation_method)

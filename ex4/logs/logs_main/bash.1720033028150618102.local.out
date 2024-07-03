@@ -1,3 +1,0 @@
-   M  N    K    S  rho  gamma  CVXPY_SOLVE_fail  CVXPY_SOLVE_time  CVXPY_SOLVE_pstar CVXPY_SOLVE_pstop CVXPY_SOLVE_pfinal  CVXPY_ADMM_POOL_fail  CVXPY_ADMM_POOL_time  CVXPY_ADMM_POOL_pstar CVXPY_ADMM_POOL_pstop CVXPY_ADMM_POOL_pfinal
-0  8  6  1.0  1.0  1.0    1.0                 0          0.005241           1.184576              None               None                     1              0.244527               1.184657                  None                   None
-1  4  5  1.0  1.0  1.0    1.0                 0          0.004478           0.860600              None               None                     1              0.233200               0.860640                  None                   None

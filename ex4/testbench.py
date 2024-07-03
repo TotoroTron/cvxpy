@@ -1,7 +1,7 @@
 import numpy as np
 import lasso as ls 
 import pandas as pd
-import cvxpy as cvx
+import cvxpy as cx
 import time
 
 class Testbench():
@@ -48,7 +48,7 @@ class Testbench():
             M, N, K, S, rho, gamma = param
             np.random.seed(1)
             A = np.random.randn(M, N) # Input data matrix 
-            x = cvx.Variable((N, 1)) # Coefficient vector
+            x = cx.Variable((N, 1)) # Coefficient vector
             b = np.random.rand(M, 1) # Response vector
 
             # Validation Run

@@ -1,4 +1,4 @@
-import cvxpy as cvx
+import cvxpy as cx
 import numpy as np
 from multiprocessing import Pool
 from abc import ABC, abstractmethod
@@ -13,7 +13,7 @@ class LASSO(ABC):
         assert self._A.ndim == 2, "A must be a 2D numpy array!"
 
         # Assert x is a 2D numpy array with shape (n, 1)
-        assert isinstance(self._x, cvx.Variable), "x must be a cvxpy Variable!"
+        assert isinstance(self._x, cx.Variable), "x must be a cvxpy Variable!"
         assert self._x.ndim == 2, "x must be a 2D Variable!"
         assert self._x.shape[1] == 1, "x must be a column vector (n, 1)!"
 
@@ -55,9 +55,9 @@ class LASSO(ABC):
 class CVXPY_SOLVE(LASSO):
     def solve(self):
         A, x, b, rho, gamma = self._inputs
-        fis = [ cvx.sum_squares(A @ x - b), gamma * cvx.norm(x, 1) ]
-        objective = cvx.Minimize(sum(fis))
-        problem = cvx.Problem(objective)
+        fis = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
+        objective = cx.Minimize(sum(fis))
+        problem = cx.Problem(objective)
         self._pstar = problem.solve()
         self._xstar = x.value
 
@@ -72,13 +72,13 @@ class CVXPY_ADMM_POOL(LASSO):
         x = self._inputs[1]
         rho = self._inputs[3]
         f, v, x = args
-        problem = cvx.Problem(cvx.Minimize(f + (rho / 2) * cvx.sum_squares(x - v)))
+        problem = cx.Problem(cx.Minimize(f + (rho / 2) * cx.sum_squares(x - v)))
         problem.solve()
         return x.value
 
     def solve(self):
         A, x, b, rho, gamma = self._inputs
-        funcs = [ cvx.sum_squares(A @ x - b), gamma * cvx.norm(x, 1) ]
+        funcs = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
         ui = [np.zeros((A.shape[1], 1)) for _ in funcs]
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
@@ -91,7 +91,7 @@ class CVXPY_ADMM_POOL(LASSO):
             xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
             xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
-            list_loss.append( (cvx.sum_squares(A @ xbar - b) + gamma * cvx.norm(xbar, 1)).value )
+            list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
 
         self._xstar = x.value
         self._pstar = list_loss[-1]

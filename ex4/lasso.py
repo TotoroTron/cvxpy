@@ -14,7 +14,7 @@ class LASSO(ABC):
 
         # Assert x is a 2D numpy array with shape (n, 1)
         assert isinstance(self._x, cvx.Variable), "x must be a cvxpy Variable!"
-        assert self._x.ndim == 2, "x must be a 2D numpy array!"
+        assert self._x.ndim == 2, "x must be a 2D Variable!"
         assert self._x.shape[1] == 1, "x must be a column vector (n, 1)!"
 
         # Assert b is a 2D numpy array with shape (m, 1)
@@ -69,27 +69,32 @@ class CVXPY_ADMM_POOL(LASSO):
         self._NUM_PROCS = 4 
 
     def _prox(self, args):
-        f, v, rho = args
-        f += (rho/2) * cvx.sum_squares(self._x - v)
-        cvx.Problem(cvx.Minimize(f)).solve()
-        return self._x.value
+        x = self._inputs[1]
+        rho = self._inputs[3]
+        f, v, x = args
+        problem = cvx.Problem(cvx.Minimize(f + (rho / 2) * cvx.sum_squares(x - v)))
+        problem.solve()
+        return x.value
 
     def solve(self):
         A, x, b, rho, gamma = self._inputs
         funcs = [ cvx.sum_squares(A @ x - b), gamma * cvx.norm(x, 1) ]
-        ui = [ np.zeros((A.shape[1], 1)) for func in funcs ]
+        ui = [np.zeros((A.shape[1], 1)) for _ in funcs]
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
+
+        list_loss = []
 
         # ADMM loop.
         for i in range(50):
             prox_args = [ xbar - u for u in ui ]
-
-            xi = pool.map(self._prox, zip(funcs, prox_args, [rho for func in funcs]))
-            xbar = sum(xi)/len(xi)
+            xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
+            xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
+            list_loss.append( (cvx.sum_squares(A @ xbar - b) + gamma * cvx.norm(xbar, 1)).value )
 
-        self._xstar = (cvx.sum_squares(np.dot(A, xbar) - b) + gamma * norm(xbar, 1)).value
+        self._xstar = x.value
+        self._pstar = list_loss[-1]
 
 
 class ADMM_MPI(LASSO):

@@ -93,6 +93,7 @@ class Testbench():
             report.append(entry)
         # END ITERATE PARAMS
         
+        self._df = pd.concat( [self._df, pd.DataFrame(report)] )
         column_names = [ "M", "N", "K", "S", "rho", "gamma" ]
         for method in self._methods:
             method_name = method.__name__
@@ -101,7 +102,6 @@ class Testbench():
             column_names.append(f"{method_name}_pstar")
             column_names.append(f"{method_name}_pstop")
             column_names.append(f"{method_name}_pfinal")
-        self._df = pd.concat( [self._df, pd.DataFrame(report)] )
         self._df.columns = column_names
     # END TEST_ALL
         

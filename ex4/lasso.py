@@ -88,7 +88,7 @@ class CVXPY_ADMM_POOL(LASSO):
         # ADMM loop.
         for i in range(50):
             prox_args = [ xbar - u for u in ui ]
-            xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
+           xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
             xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
             list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
@@ -102,15 +102,38 @@ class ADMM_MPI(LASSO):
         super().__init__(inputs)
         import mpi4py.MPI as mpi
         self._comm = MPI.COMM_WORLD
+        
         self._rank = comm.Get_rank() # Rank of the process
         self._size = comm.Get_size() # Number of processes
 
-    def admm(self):
-        pass
+    def admm(self, A, b, x, z, y):
+        ...
 
     def solve(self):
-        pass
-        
+        if self._rank == 0:
+            A, x, b, rho, gamma = self._inputs 
+        else:
+            A = None
+            x = None
+            b = None
+            rho = None
+            gamma = None
+
+        Mi = A.shape[0] // self._size
+        N = A.shape[1]
+
+        local_A = np.empty((Mi, N), dtype='float64') 
+        local_b = np.empty(Mi, dtype='float64')
+        local_x = np.zeros(N, dtype='float64')
+        local_z = np.zeros(N, dtype='float64')
+        local_y = np.zeros(N, dtype='float64')
+
+        comm.Scatter(A, local_A, root=0) 
+        comm.Scatter(b, local_b, root=0)
+
+        admm(local_A, local_b, local_x, local_z, local_y) 
+
+        ...
 
 
 

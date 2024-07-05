@@ -9,7 +9,7 @@ def main():
 
     params = [ (80, 60, K, S, rho, gamma), (250, 100, K, S, rho, gamma) ]
     methods = [ ls.CVXPY_ADMM_POOL ]
-    validation_method = ls.CVXPY_SOLVE 
+    validation_method = ls.CVXPY_CLARABEL
     testbench = tb.Testbench(params, methods, validation_method)
     testbench.test_all()
     df = testbench.get_dataframe()

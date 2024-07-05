@@ -4,8 +4,8 @@ from multiprocessing import Pool
 from abc import ABC, abstractmethod
 
 class LASSO(ABC): 
-    def __init__(self):
-        A, x, b, rho, gamma = problem_inputs
+    def __init__(self, inputs):
+        A, x, b, rho, gamma = inputs 
 
         # Assert A is a 2D numpy array
         assert isinstance(A, np.ndarray), "A must be a numpy array!"
@@ -44,14 +44,11 @@ class LASSO(ABC):
         return 0.5 * cx.sum_squares(A @ x, b) 
         # return cp.sum_of_squares(X @ beta - Y)
 
-    def regularizer(beta):
+    def regularizer(x):
         return cx.norm(x, 1) # L1 norm
 
-    def objective_fn(X, Y, beta, lambd):
-        return loss_fn(X, Y, beta) + lambd * regularizer(beta)
-
-    def mse(X, Y, beta):
-        return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
+    def mse(A, x, b):
+        return (1.0 / A.shape[0]) * loss_fn(A, x, b).value
 
     @abstractmethod
     def solve(self):
@@ -70,22 +67,28 @@ class LASSO(ABC):
         return self._pfinal, self._xfinal
     
 
-class CVXPY_ECOS_SOLVE(LASSO):
-    def __init__(self, solver='ECOS', **solver_kwargs):
+class CVXPY_CLARABEL(LASSO):
+    def __init__(self, inputs, solver=cx.CLARABEL, **solver_kwargs):
         super().__init__(inputs)
         self._solver = solver
         self._solver_kwargs = solver_kwargs
 
-    def solve(self) 
+    def solve(self): 
         A, x, b, rho, gamma = self._inputs
         fis = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
         objective = cx.Minimize(sum(fis))
         problem = cx.Problem(objective)
-        self._pstar = problem.solve(solver=solver, **solver_kwargs)
+        self._pstar = problem.solve(solver=self._solver, **self._solver_kwargs)
         self._xstar = x.value
 
 
 class CVXPY_ADMM_POOL(LASSO):
+    """
+    This is a weird implementation bc it's ADMM but also proximal operator.
+    It doesn't even utilize dual decomposition to utilize all 4 processes,
+    just maps the least squares term and regularizer term to 2 processes.
+    https://github.com/cvxpy/cvxpy/blob/master/examples/admm_lasso.py
+    """
     def __init__(self, inputs):
         super().__init__(inputs)
         from multiprocessing import Pool
@@ -129,7 +132,8 @@ class ADMM_MPI(LASSO):
         self._size = comm.Get_size() # Number of processes
 
     def admm(self, A, b, x, z, y):
-        
+        ... 
+        pass
 
         
         

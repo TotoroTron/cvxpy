@@ -4,29 +4,30 @@ from multiprocessing import Pool
 from abc import ABC, abstractmethod
 
 class LASSO(ABC): 
-    def __init__(self, inputs):
-        self._inputs = inputs
-        self._A, self._x, self._b, self._rho, self._gamma = inputs
+    def __init__(self):
+        A, x, b, rho, gamma = problem_inputs
 
         # Assert A is a 2D numpy array
-        assert isinstance(self._A, np.ndarray), "A must be a numpy array!"
-        assert self._A.ndim == 2, "A must be a 2D numpy array!"
+        assert isinstance(A, np.ndarray), "A must be a numpy array!"
+        assert A.ndim == 2, "A must be a 2D numpy array!"
 
         # Assert x is a 2D numpy array with shape (n, 1)
-        assert isinstance(self._x, cx.Variable), "x must be a cvxpy Variable!"
-        assert self._x.ndim == 2, "x must be a 2D Variable!"
-        assert self._x.shape[1] == 1, "x must be a column vector (n, 1)!"
+        assert isinstance(x, cx.Variable), "x must be a cvxpy Variable!"
+        assert x.ndim == 2, "x must be a 2D Variable!"
+        assert x.shape[1] == 1, "x must be a column vector (n, 1)!"
 
         # Assert b is a 2D numpy array with shape (m, 1)
-        assert isinstance(self._b, np.ndarray), "b must be a numpy array!"
-        assert self._b.ndim == 2, "b must be a 2D numpy array!"
-        assert self._b.shape[1] == 1, "b must be a column vector (m, 1)!"
+        assert isinstance(b, np.ndarray), "b must be a numpy array!"
+        assert b.ndim == 2, "b must be a 2D numpy array!"
+        assert b.shape[1] == 1, "b must be a column vector (m, 1)!"
 
         # Assert rho is a float
-        assert isinstance(self._rho, float), "rho must be a float!"
+        assert isinstance(rho, float), "rho must be a float!"
 
         # Assert gamma is a float
-        assert isinstance(self._gamma, float), "gamma must be a float!"
+        assert isinstance(gamma, float), "gamma must be a float!"
+
+        self._inputs = inputs
 
         self._xstar = None
         self._xstop = None
@@ -34,7 +35,24 @@ class LASSO(ABC):
         self._pstar = None
         self._pstop = None
         self._pfinal = None
-    
+   
+    def objective_fn(A, x, b, rho, gamma):
+        # f(x) = ||Ax - B||_2^2 + gamma * ||x||_1
+        return loss_fn(A, x, b) + gamma * regularizer(x)
+
+    def loss_fn(A, x, b):
+        return 0.5 * cx.sum_squares(A @ x, b) 
+        # return cp.sum_of_squares(X @ beta - Y)
+
+    def regularizer(beta):
+        return cx.norm(x, 1) # L1 norm
+
+    def objective_fn(X, Y, beta, lambd):
+        return loss_fn(X, Y, beta) + lambd * regularizer(beta)
+
+    def mse(X, Y, beta):
+        return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
+
     @abstractmethod
     def solve(self):
         pass
@@ -52,13 +70,18 @@ class LASSO(ABC):
         return self._pfinal, self._xfinal
     
 
-class CVXPY_SOLVE(LASSO):
-    def solve(self):
+class CVXPY_ECOS_SOLVE(LASSO):
+    def __init__(self, solver='ECOS', **solver_kwargs):
+        super().__init__(inputs)
+        self._solver = solver
+        self._solver_kwargs = solver_kwargs
+
+    def solve(self) 
         A, x, b, rho, gamma = self._inputs
         fis = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
         objective = cx.Minimize(sum(fis))
         problem = cx.Problem(objective)
-        self._pstar = problem.solve()
+        self._pstar = problem.solve(solver=solver, **solver_kwargs)
         self._xstar = x.value
 
 
@@ -79,7 +102,7 @@ class CVXPY_ADMM_POOL(LASSO):
     def solve(self):
         A, x, b, rho, gamma = self._inputs
         funcs = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
-        ui = [np.zeros((A.shape[1], 1)) for _ in funcs]
+        ui = [ np.zeros((A.shape[1], 1)) for _ in funcs ]
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
 
@@ -88,7 +111,7 @@ class CVXPY_ADMM_POOL(LASSO):
         # ADMM loop.
         for i in range(50):
             prox_args = [ xbar - u for u in ui ]
-           xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
+            xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
             xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
             list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
@@ -102,12 +125,14 @@ class ADMM_MPI(LASSO):
         super().__init__(inputs)
         import mpi4py.MPI as mpi
         self._comm = MPI.COMM_WORLD
-        
         self._rank = comm.Get_rank() # Rank of the process
         self._size = comm.Get_size() # Number of processes
 
     def admm(self, A, b, x, z, y):
-        ...
+        
+
+        
+        
 
     def solve(self):
         if self._rank == 0:
@@ -131,7 +156,9 @@ class ADMM_MPI(LASSO):
         comm.Scatter(A, local_A, root=0) 
         comm.Scatter(b, local_b, root=0)
 
-        admm(local_A, local_b, local_x, local_z, local_y) 
+        admm(local_A, local_b, local_x, local_z, local_y)
+        
+
 
         ...
 

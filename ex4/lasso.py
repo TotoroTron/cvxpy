@@ -28,6 +28,7 @@ class LASSO(ABC):
         assert isinstance(gamma, float), "gamma must be a float!"
 
         self._inputs = inputs
+        self._list_loss = []
 
         self._xstar = None
         self._xstop = None
@@ -82,7 +83,7 @@ class CVXPY_CLARABEL(LASSO):
         self._xstar = x.value
 
 
-class CVXPY_ADMM_POOL(LASSO):
+class CVXPY_ADMM_PROX_POOL(LASSO):
     """
     This is a weird implementation bc it's ADMM but also proximal operator.
     It doesn't even utilize dual decomposition to utilize all 4 processes,
@@ -109,7 +110,7 @@ class CVXPY_ADMM_POOL(LASSO):
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
 
-        list_loss = []
+        self._list_loss = []
 
         # ADMM loop.
         for i in range(50):
@@ -117,10 +118,10 @@ class CVXPY_ADMM_POOL(LASSO):
             xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
             xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
-            list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
+            self._list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
 
         self._xstar = x.value
-        self._pstar = list_loss[-1]
+        self._pstar = self._list_loss[-1]
 
 
 class ADMM_MPI(LASSO):

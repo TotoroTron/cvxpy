@@ -37,6 +37,7 @@ class LASSO(ABC):
         self._pstop = None
         self._pfinal = None
    
+    """
     def objective_fn(A, x, b, rho, gamma):
         # f(x) = ||Ax - B||_2^2 + gamma * ||x||_1
         return loss_fn(A, x, b) + gamma * regularizer(x)
@@ -50,6 +51,7 @@ class LASSO(ABC):
 
     def mse(A, x, b):
         return (1.0 / A.shape[0]) * loss_fn(A, x, b).value
+    """
 
     @abstractmethod
     def solve(self):

@@ -65,8 +65,11 @@ class Testbench():
 
             # BEGIN FOR_METHODS
             for idx, method in enumerate(self._methods):
+                method_class = method['method']
+                args = method.get('args', ())
+                kwargs = method.get('kwargs', {})
                 inputs = (A, x.copy(), b, rho, gamma)
-                instance = method(inputs)
+                instance = method_class(inputs, *args, **kwargs)
                 start_time = time.time()
                 instance.solve()
                 elapsed_time = time.time() - start_time
@@ -96,7 +99,7 @@ class Testbench():
         self._df = pd.concat( [self._df, pd.DataFrame(report)] )
         column_names = [ "M", "N", "K", "S", "rho", "gamma" ]
         for method in self._methods:
-            method_name = method.__name__
+            method_name = method['method'].__name__
             column_names.append(f"{method_name}_fail")
             column_names.append(f"{method_name}_time")
             column_names.append(f"{method_name}_pstar")

@@ -8,8 +8,16 @@ def main():
     gamma = 1.0
 
     params = [ (80, 60, K, S, rho, gamma), (250, 100, K, S, rho, gamma) ]
-    methods = [ ls.CVXPY_ADMM_PROX_POOL ]
-    validation_method = ls.CVXPY_CLARABEL
+
+    methods = [ 
+        {'method': ls.CVXPY_ADMM_PROX_POOL, 'args': (), 'kwargs': {}}
+    ]
+
+    validation_method = {
+        'method': ls.CVXPY_CLARABEL, 'args': (), 'kwargs': {'max_iter': 1000}
+    }
+    # https://github.com/oxfordcontrol/Clarabel.rs/blob/main/src/solver/core/solver.rs
+
     testbench = tb.Testbench(params, methods, validation_method)
     testbench.test_all()
     df = testbench.get_dataframe()

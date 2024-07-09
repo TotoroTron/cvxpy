@@ -14,6 +14,7 @@ def main():
         # { 'method': , 'kwargs':{} }
     ]
 
+    # https://clarabel.org/stable/api_settings/
     # https://github.com/oxfordcontrol/Clarabel.rs/blob/main/src/solver/core/solver.rs
     validation_method = { 'method': ls.CVXPY_CLARABEL, 'kwargs': {'max_iter': 1000} }
 

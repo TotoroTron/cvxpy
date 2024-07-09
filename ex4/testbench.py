@@ -66,10 +66,9 @@ class Testbench():
             # BEGIN FOR_METHODS
             for idx, method in enumerate(self._methods):
                 method_class = method['method']
-                args = method.get('args', ())
                 kwargs = method.get('kwargs', {})
                 inputs = (A, x.copy(), b, rho, gamma)
-                instance = method_class(inputs, *args, **kwargs)
+                instance = method_class(inputs, **kwargs)
                 start_time = time.time()
                 instance.solve()
                 elapsed_time = time.time() - start_time

@@ -11,17 +11,17 @@ def main():
 
     methods = [ 
         {
-            'method': ls.CVXPY_ADMM_PROX_POOL,
-            'kwargs': {},
+            'method': ls.ADMM_PROX_POOL,
+            'kwargs': {'num_procs': 4, 'max_iter': 400},
         },
-        {
-            'method': ls.ADMM_MPI,
-            'kwargs': {},
-        },
+       # {
+       #     'method': ls.ADMM_MPI,
+       #     'kwargs': {},
+       # },
     ]
 
     validation_method = { 
-        'method': ls.CVXPY_CLARABEL, 
+        'method': ls.CLARABEL, 
         'kwargs': {'max_iter': 400} 
     }
 

@@ -48,7 +48,8 @@ class Testbench():
             M, N, K, S, rho, gamma = param
             np.random.seed(1)
             A = np.random.randn(M, N) # Input data matrix 
-            x = cx.Variable((N, 1)) # Coefficient vector
+            # x = cx.Variable((N, 1)) # Coefficient vector
+            x = np.random.rand(N, 1) # Coefficient vector
             b = np.random.rand(M, 1) # Response vector
 
             # Validation Run

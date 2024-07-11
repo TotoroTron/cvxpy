@@ -1,0 +1,3 @@
+     M    N    K    S  rho  gamma  CLARABEL_fail  CLARABEL_time  CLARABEL_pstar CLARABEL_pstop CLARABEL_pfinal  ADMM_PROX_POOL_fail  ADMM_PROX_POOL_time  ADMM_PROX_POOL_pstar  ADMM_PROX_POOL_pstop ADMM_PROX_POOL_pfinal
+0   80   60  1.0  1.0  1.0    1.0              0       0.011633        8.327657           None            None                    0             2.878913              8.328047              8.328047                  None
+1  250  100  1.0  1.0  1.0    1.0              0       0.034306       26.635347           None            None                    0             6.798608             26.637756             26.637756                  None

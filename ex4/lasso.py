@@ -37,7 +37,7 @@ class LASSO(ABC):
         self._pstop = None
         self._pfinal = None
    
-    """
+    
     def objective_fn(A, x, b, rho, gamma):
         # f(x) = ||Ax - B||_2^2 + gamma * ||x||_1
         return loss_fn(A, x, b) + gamma * regularizer(x)
@@ -51,7 +51,8 @@ class LASSO(ABC):
 
     def mse(A, x, b):
         return (1.0 / A.shape[0]) * loss_fn(A, x, b).value
-    """
+
+   
 
     @abstractmethod
     def solve(self):
@@ -78,7 +79,8 @@ class CVXPY_CLARABEL(LASSO):
 
     def solve(self): 
         A, x, b, rho, gamma = self._inputs
-        fis = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
+        # fis = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
+        fis = [ loss_fn(A, x, b), gamma * regularizer(x) ]
         objective = cx.Minimize(sum(fis))
         problem = cx.Problem(objective)
         self._pstar = problem.solve(solver=self._solver, **self._solver_kwargs)
@@ -92,10 +94,11 @@ class CVXPY_ADMM_PROX_POOL(LASSO):
     just maps the least squares term and regularizer term to 2 processes.
     https://github.com/cvxpy/cvxpy/blob/master/examples/admm_lasso.py
     """
-    def __init__(self, inputs):
+    def __init__(self, inputs, **solver_kwargs):
         super().__init__(inputs)
         from multiprocessing import Pool
         self._NUM_PROCS = 4 
+        self._max_iter = solver_kwargs.get('max_iter')
 
     def _prox(self, args):
         x = self._inputs[1]
@@ -107,7 +110,7 @@ class CVXPY_ADMM_PROX_POOL(LASSO):
 
     def solve(self):
         A, x, b, rho, gamma = self._inputs
-        funcs = [ cx.sum_squares(A @ x - b), gamma * cx.norm(x, 1) ]
+        funcs = [ loss_fn(A, x, b), gamma * regularizer(x) ]
         ui = [ np.zeros((A.shape[1], 1)) for _ in funcs ]
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
@@ -115,27 +118,35 @@ class CVXPY_ADMM_PROX_POOL(LASSO):
         self._list_loss = []
 
         # ADMM loop.
-        for i in range(50):
+        for i in range(self._max_iter):
             prox_args = [ xbar - u for u in ui ]
             xi = pool.map(self._prox, [ (func, prox_arg, x) for func, prox_arg in zip(funcs, prox_args) ])
             xbar = sum(xi) / len(xi)
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ]
-            self._list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
+            # self._list_loss.append( (cx.sum_squares(A @ xbar - b) + gamma * cx.norm(xbar, 1)).value )
+            self._list_loss.append( objective_fn(A, xbar, b, rho, gamma).value )
+            if len(self._list_loss) > 1:
+                # Implement a stopping criterion
+                ...
 
         self._xstar = x.value
         self._pstar = self._list_loss[-1]
 
 
 class ADMM_MPI(LASSO):
-    def __init__(self, inputs):
+    def __init__(self, inputs, **solver_kwargs):
         super().__init__(inputs)
         import mpi4py.MPI as mpi
         self._comm = MPI.COMM_WORLD
         self._rank = comm.Get_rank() # Rank of the process
         self._size = comm.Get_size() # Number of processes
+        self._max_iter = solver_kwargs.get('max_iter')
 
-    def admm(self, A, b, x, z, y):
-        ... 
+    def admm(self, A, b, x, z, y, rho, gamma):
+        list_primal_res = []
+        list_dual_res = []
+        for k in 
+
         pass
 
         
@@ -163,7 +174,11 @@ class ADMM_MPI(LASSO):
         comm.Scatter(A, local_A, root=0) 
         comm.Scatter(b, local_b, root=0)
 
-        admm(local_A, local_b, local_x, local_z, local_y)
+        comm.Broadcast(x, root=0)
+        comm.Broadcast(rho, root=0)
+        comm.Broadcast(gamma, root=0)
+
+        admm(local_A, local_b, local_x, local_z, local_y, rho, gamma)
         
 
 

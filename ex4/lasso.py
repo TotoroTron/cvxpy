@@ -29,6 +29,7 @@ class LASSO(ABC):
 
         self._inputs = inputs
         self._list_loss = []
+        self._list_x = []
 
         self._xstar = None
         self._xstop = None
@@ -51,6 +52,35 @@ class LASSO(ABC):
 
     def _mse(self, A, x, b):
         return (1.0 / A.shape[0]) * self._loss_fn(A, x, b).value
+
+    def _check_primal_crit(self, x, z):
+        r_k = np.linalg.norm(z - np.mean(x, axis=0))
+        epsilon_primal = np.sqrt(x.shape[0]) * self._epsilon_abs + \
+            self._epsilon_rel * max(np.linalg.norm(z), np.linalg.norm(np.mean(x, axis=0)))
+        if r_k <= epsilon_primal:
+            return true
+
+    def _check_dual_crit(self, rho, z, z_prev, u):
+        s_k = np.linalg.norm(rho * (z - z_prev))
+        epsilon_dual = np.sqrt(z.shape[0]) * self._epsilon_abs + \
+            self._epsilon_rel * np.linalg.norm(u[0]) # using dual var u from zeroth process
+        if s_k <= epsilon_dual:
+            return true
+    """   
+    def _check_criterion(self, ):
+        if len(self._list_loss) > 1:
+            # ADMM Boyd 3.12 stopping criterion
+            r_k = np.linalg.norm(xbar - np.mean(xi, axis=0)) # primal residual
+            s_k = np.linalg.norm(rho * (xbar - z_prev)) # dual residual
+                # break
+            epsilon_primal = np.sqrt(A.shape[1]) * self._epsilon_abs + \
+                self._epsilon_rel * max(np.linalg.norm(xbar), np.linalg.norm(np.mean(xi, axis=0)))#end-max 
+            epsilon_dual = np.sqrt(A.shape[1]) * self._epsilon_abs + \
+                self._epsilon_rel * np.linalg.norm(ui[0]) 
+            if r_k <= epsilon_primal and s_k <= epsilon_dual:
+                self._xstop = x.value
+                self._pstop = self._list_loss[-1]
+    """
 
 
     @abstractmethod
@@ -124,8 +154,8 @@ class ADMM_PROX_POOL(CVXPY_SOLVER):
         xbar = np.zeros((A.shape[1], 1))
         pool = Pool(self._NUM_PROCS)
 
-        self._list_loss = []
         z_prev = xbar.copy()
+        stopping_criterion_flag = False 
 
         # BEGIN ADMM LOOP.
         for i in range(self._max_iter):
@@ -136,26 +166,25 @@ class ADMM_PROX_POOL(CVXPY_SOLVER):
             ui = [ u + x_ - xbar for x_, u in zip(xi, ui) ] # Dual variable updates
 
             self._list_loss.append( (self._objective_fn(A, xbar, b, rho, gamma)).value )
+            self._list_x.append(xbar)
 
             # BEGIN CHECK STOPPING CRITERION 
-            if len(self._list_loss) > 1:
-                # ADMM Boyd 3.12 stopping criterion
-                r_k = np.linalg.norm(xbar - np.mean(xi, axis=0)) # primal residual
-                s_k = np.linalg.norm(rho * (xbar - z_prev)) # dual residual
-                epsilon_primal = np.sqrt(A.shape[1]) * self._epsilon_abs + \
-                    self._epsilon_rel * max(np.linalg.norm(xbar), np.linalg.norm(np.mean(xi, axis=0)))#end-max 
-                epsilon_dual = np.sqrt(A.shape[1]) * self._epsilon_abs + \
-                    self._epsilon_rel * np.linalg.norm(ui[0]) 
-                if r_k <= epsilon_primal and s_k <= epsilon_dual:
-                    self._xstop = x.value
+            if not stopping_criterion_flag:
+                if self._check_primal_crit(xbar, xi) and self._check_dual_crit(rho, xbar, z_prev, ui):
+                    self._xstop = xbar
                     self._pstop = self._list_loss[-1]
-                    # break
+                    stopping_criterion_flag = True
             # END CHECK STOPPING CRITERION
             z_prev = xbar.copy()
         # END ADMM LOOP
 
-        self._xstar = xbar
-        self._pstar = self._list_loss[-1]
+        self._xfinal = xbar
+        self._pfinal = self._list_loss[-1]
+
+        self._pstar = min(self._list_loss)
+        min_idx = self._list_loss.index(self._pstar)
+        self._xstar = self._list_x[min_idx]
+
     # end solve()
 
 

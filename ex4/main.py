@@ -12,7 +12,12 @@ def main():
     methods = [ 
         {
             'method': ls.ADMM_PROX_POOL,
-            'kwargs': {'num_procs': 4, 'max_iter': 400},
+            'kwargs': {
+                'num_procs': 4,
+                'max_iter': 100,
+                'epsilon_abs': 1e-4,
+                'epsilon_rel': 1e-3,
+            },
         },
        # {
        #     'method': ls.ADMM_MPI,
@@ -22,7 +27,7 @@ def main():
 
     validation_method = { 
         'method': ls.CLARABEL, 
-        'kwargs': {'max_iter': 400} 
+        'kwargs': {'max_iter': 100} 
     }
 
     # https://clarabel.org/stable/api_settings/

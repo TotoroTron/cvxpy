@@ -55,17 +55,22 @@ class LASSO(ABC):
 
     def _check_primal_crit(self, x, z):
         r_k = np.linalg.norm(z - np.mean(x, axis=0))
-        epsilon_primal = np.sqrt(x.shape[0]) * self._epsilon_abs + \
+        epsilon_primal = np.sqrt(z.shape[0]) * self._epsilon_abs + \
             self._epsilon_rel * max(np.linalg.norm(z), np.linalg.norm(np.mean(x, axis=0)))
+        print("r_k", r_k, "epsilon_primal", epsilon_primal)
         if r_k <= epsilon_primal:
-            return true
+            return True
+        return False
 
     def _check_dual_crit(self, rho, z, z_prev, u):
         s_k = np.linalg.norm(rho * (z - z_prev))
         epsilon_dual = np.sqrt(z.shape[0]) * self._epsilon_abs + \
             self._epsilon_rel * np.linalg.norm(u[0]) # using dual var u from zeroth process
+        print("s_k", s_k, "epsilon_dual", epsilon_dual)
         if s_k <= epsilon_dual:
-            return true
+            return True
+        return False
+
     """   
     def _check_criterion(self, ):
         if len(self._list_loss) > 1:
@@ -134,7 +139,7 @@ class ADMM_PROX_POOL(CVXPY_SOLVER):
         super().__init__(inputs)
         from multiprocessing import Pool
         self._NUM_PROCS = solver_kwargs.get('num_procs', 4) 
-        self._max_iter = solver_kwargs.get('max_iter', 200)
+        self._max_iter = solver_kwargs.get('max_iter', 400)
         self._epsilon_abs = solver_kwargs.get('epsilon_abs', 1e-4)
         self._epsilon_rel = solver_kwargs.get('epsilon_rel', 1e-3)
 
@@ -170,7 +175,9 @@ class ADMM_PROX_POOL(CVXPY_SOLVER):
 
             # BEGIN CHECK STOPPING CRITERION 
             if not stopping_criterion_flag:
-                if self._check_primal_crit(xbar, xi) and self._check_dual_crit(rho, xbar, z_prev, ui):
+                primal_flag = self._check_primal_crit(xi, xbar)
+                dual_flag = self._check_dual_crit(rho, xbar, z_prev, ui)
+                if primal_flag and dual_flag:
                     self._xstop = xbar
                     self._pstop = self._list_loss[-1]
                     stopping_criterion_flag = True

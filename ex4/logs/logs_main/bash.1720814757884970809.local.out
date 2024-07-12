@@ -1,0 +1,11 @@
+r_k 0.0 epsilon_primal 0.0011705894040403802
+s_k 0.39599273479889674 epsilon_dual 0.0011705894040403802
+r_k 0.0 epsilon_primal 0.0011705894040654474
+s_k 2.525902237775424e-11 epsilon_dual 0.0015665821388142097
+r_k 0.0 epsilon_primal 0.0012370683561645451
+s_k 0.2370683561645451 epsilon_dual 0.0012370683561645451
+r_k 0.0 epsilon_primal 0.0012370683561765568
+s_k 1.2021152843270659e-11 epsilon_dual 0.0014741367123170786
+     M    N    K    S  rho  gamma  CLARABEL_fail  CLARABEL_time  CLARABEL_pstar CLARABEL_pstop CLARABEL_pfinal  ADMM_PROX_POOL_fail  ADMM_PROX_POOL_time  ADMM_PROX_POOL_pstar  ADMM_PROX_POOL_pstop  ADMM_PROX_POOL_pfinal
+0   80   60  1.0  1.0  1.0    1.0              0       0.012355        8.327657           None            None                    0             0.717527              8.354504             10.067805               8.354504
+1  250  100  1.0  1.0  1.0    1.0              0       0.035102       26.635347           None            None                    0             1.585561             26.742240             30.379264              26.742240

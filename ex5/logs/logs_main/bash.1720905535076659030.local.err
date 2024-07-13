@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/main.py", line 1, in <module>
+    import lasso as ls
+  File "/home/bcheng/workspace/dev/cvxpy/ex4/lasso.py", line 1, in <module>
+    import cvxpy as cx
+ModuleNotFoundError: No module named 'cvxpy'
